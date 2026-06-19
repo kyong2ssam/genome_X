@@ -224,7 +224,7 @@
     <div id="status-bar">
         <div><span class="alert-blink">[🔴 경보 레벨: 위험]</span> 봉쇄 진행 중</div>
         <div id="timer">⏱ 경과 시간: 00:00</div>
-        <div id="score-display" style="color: var(--color-amber); font-weight: bold;">💯 점수: 100점</div>
+        <div id="score-display" style="color: var(--color-amber); font-weight: bold;">💯 점수: 200점</div>
         <div id="stage-indicator">스테이지 1 / 10</div>
         <button id="btn-return-map" onclick="showScreen('map-screen')" style="display:none; padding: 5px 15px; font-size: 0.9rem;">🗺 평면도로 복귀</button>
     </div>
@@ -283,7 +283,7 @@
 
             <div id="boss-area" style="width: 100%; text-align: center; display: none; flex-direction: column; gap: 15px;">
                 <div style="border: 1px solid var(--text-dim); padding: 12px; border-radius: 5px;">
-                    <h4 style="color: var(--color-amber); font-size: 0.95rem;">[Part A] DNA 주형 가닥 → 영어 번역 (단어 의미: 감염원 바이러스)</h4>
+                    <h4 style="color: var(--color-amber); font-size: 0.95rem;">[Part A] DNA 주형 가닥 → 영어 번역 (단어 의미: 기생성 감염원)</h4>
                     <div id="boss-dna-seq" class="sequence-container" style="margin-top:10px;"></div>
                     <div id="boss-ans-a" class="input-group" style="margin-top:10px;"></div>
                 </div>
@@ -338,7 +338,7 @@
                     <tbody id="ranking-body"></tbody>
                 </table>
                 <div style="margin-top: 20px;">
-                    <button onclick="location.reload()" style="padding: 12px 25px; font-size: 1rem; width: 100%; max-width: 250px;">처음부터 다시하기</button>
+                    <button onclick="startNewGame()" style="padding: 12px 25px; font-size: 1rem; width: 100%; max-width: 250px;">처음부터 다시하기</button>
                 </div>
             </div>
         </div>
@@ -349,7 +349,7 @@
 
     <div id="popup-overlay" class="overlay">
         <div class="popup" id="generic-popup">
-            <button class="popup-close" onclick="closePopup('popup-overlay')">✕</button>
+            <button class="popup-close" onclick="closePopup('popup-overlay')" id="general-popup-close">✕</button>
             <h2 id="popup-title" style="margin-bottom: 15px; font-size: 1.3rem;"></h2>
             <div id="popup-content" style="line-height: 1.6; font-size: 0.95rem; word-break: keep-all;"></div>
         </div>
@@ -369,9 +369,9 @@
 
 <script>
 // ★★★ 여기에 복사한 앱스 스크립트 웹앱 URL을 붙여넣으세요 ★★★
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUCQ678-9Up6ap_gD0bHypxCLxy8S2TnUCld3I1w198Z4LEqPfQoMHX9-eXnTedq91yw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/여기에_복사한_주소를_붙여넣으세요/exec";
 
-// #stage 단어 수정 완료
+// 변경된 단어 반영
 const STAGE_ANSWERS = {
     1: "GENOME", 2: "UNLOCK", 3: "OPEN", 4: "ㄱㅗㅏㅎㅏㄱ", 
     5: { typeA: "RNA", ansA: "CELL", typeB: "DNA", ansB: "LIFE" },
@@ -379,18 +379,18 @@ const STAGE_ANSWERS = {
     10: { partA: "VIRUS", partB: "ㅂㅏㅣㄱㅅㅣㄴ" }
 };
 
-// 바뀐 스테이지 단어에 연동된 힌트 제공
+// 변경된 힌트 데이터
 const HINT_DATA = {
-    1: { word: "생명체의 모든 유전 정보가 담긴 전체 유전체를 의미하는 영단어입니다.", structure: "G로 시작하며 6글자 단어입니다." },
-    2: { word: "잠겨 있는 보안 터미널을 해제하거나 연다는 뜻의 영단어입니다.", structure: "U로 시작하고 K로 끝나는 6글자입니다." },
+    1: { word: "생명체의 유전 정보를 담고 있는 전체 DNA 세트(유전체)를 의미하는 영어 단어입니다.", structure: "G로 시작하며 6글자 단어입니다." },
+    2: { word: "잠겨있는 것을 열거나 해제할 때 사용하는 영어 단어입니다.", structure: "U로 시작하고 K로 끝나는 6글자입니다." },
     3: { word: "열려있다는 의미의 영단어입니다.", structure: "O로 시작하고 N으로 끝납니다." },
     4: { word: "우리가 현재 배우고 있는 과목의 이름입니다.", structure: "초성: ㄱ, ㅎ, ㄱ (3음절 단어)" },
     5: { word: "A는 생물체의 기본 단위, B는 생명을 뜻합니다.", structure: "A는 C로 시작하고, B는 L로 시작합니다." },
-    6: { word: "세포 내에서 단백질을 합성하는 임무를 맡은 세포 소기관입니다.", structure: "초성: ㄹ, ㅇ, ㅂ, ㅅ, ㅁ (5음절 단어)" },
+    6: { word: "세포 내에서 아미노산을 연결하여 단백질을 합성하는 중요한 세포 소기관입니다.", structure: "초성: ㄹ, ㅇ, ㅂ, ㅅ, ㅁ (5음절 단어)" },
     7: { word: "암호를 푼다는 의미의 영단어입니다.", structure: "D로 시작하고 E로 끝나는 6글자입니다." },
     8: { word: "살아있다는 의미의 영단어입니다.", structure: "A로 시작하고 E로 끝나는 5글자입니다." },
     9: { word: "데이터를 안전하게 보존하기 위해 복제본을 만드는 작업입니다.", structure: "B로 시작하고 P로 끝나는 6글자입니다." },
-    10: { word: "Part A는 '기생성 감염원', Part B는 '면역 유도제(백신)'를 뜻합니다.", structure: "Part A는 V로 시작하고, Part B는 ㅂ으로 시작합니다." }
+    10: { word: "Part A는 '기생성 감염원', Part B는 '특정 감염병 예방을 위해 주입하는 물질(백신)'을 뜻합니다.", structure: "Part A는 V로 시작하고, Part B는 ㅂ으로 시작합니다." }
 };
 
 const CODON_EN = {
@@ -408,7 +408,7 @@ const CODON_KR = {
 const STAGES = [
     {}, 
     { title: "STAGE 1: 번역 기초", desc: "연구소 입구 금고를 열어야 합니다.<br>박사님이 남긴 암호 메모를 발견했습니다.<br>전사된 RNA 서열을 코돈표에서 찾아 해독하세요.", lang: 'EN', needTrans: false },
-    { title: "STAGE 2: 서열 확장", desc: "복도 컴퓨터의 잠금을 해제해야 합니다.<br>비밀번호는 RNA 서열 6코돈을 번역하면 나옵니다.", lang: 'EN', needTrans: false },
+    { title: "STAGE 2: 서열 확장", desc: "복도 컴퓨터의 잠금을 해제해야 합니다.<br>비밀번호는 RNA 서열을 번역하면 나옵니다.", lang: 'EN', needTrans: false },
     { title: "STAGE 3: DNA 주형 해독 입문", desc: "박사님의 연구 노트를 발견했습니다!<br>하지만 이것은 전사된 RNA 서열이 아니라 <b>DNA 가닥 중 한 가닥(주형 가닥)</b>입니다.<br>먼저 상보적 결합 규칙에 따라 <b>전사된 RNA</b>로 변환한 뒤 코돈표로 번역하세요.", lang: 'EN', needTrans: true, firstTrans: true },
     { title: "STAGE 4: 한글 자모 암호", desc: "박사님은 보안을 강화하기 위해 두 번째 암호 체계를 사용했습니다.<br>이번 암호는 <b>한글 자모 코돈표</b>로 해독해야 합니다.", lang: 'KR', needTrans: true, forcePopup: "⚠ 코돈표가 변경되었습니다!\n이제부터 한글 자모 코돈표를 사용합니다." },
     { title: "STAGE 5: 데이터 유형 판별", desc: "바이러스가 연구 기록들을 뒤섞었습니다!<br>주어진 서열이 DNA 주형 가닥인지, 이미 전사된 RNA 서열인지 먼저 확인하세요.<br>(힌트: RNA 서열에는 T가 없고 U가 사용됩니다)", lang: 'EN', isSpecial5: true },
@@ -419,10 +419,11 @@ const STAGES = [
     { title: "STAGE 10: 백신 합성", desc: "이것이 마지막 관문입니다.<br>박사님이 백신 합성 코드를 두 부분으로 나눠 각각 다른 코돈표로 암호화했습니다.<br><br><b>Part A</b>: 영어 코돈표 해독 (DNA 주형 가닥)<br><b>Part B</b>: 한글 코돈표 해독 (전사된 RNA 서열)", lang: 'BOSS' }
 ];
 
+// 자동 저장을 위한 시간 누적 변수 추가
 let state = {
-    currentStage: 1, score: 100, mistakes: 0, hintsUsed: 0,
-    startTime: 0, timerInterval: null, s5Step: 'A', finalElapsedSeconds: 0, stageHintCount: 0,
-    savedPlayerName: "무명 연구원" // 실시간 새로고침 시 추적용 유저명 저장 공간
+    currentStage: 1, score: 200, mistakes: 0, hintsUsed: 0,
+    startTime: 0, pastElapsedTime: 0, timerInterval: null, s5Step: 'A', finalElapsedSeconds: 0, stageHintCount: 0,
+    savedPlayerName: "무명 연구원" 
 };
 
 const DOM = {
@@ -462,7 +463,76 @@ let typingTimer;
 let isTyping = true;
 const introMsg = `[긴급 경보 발령 - 연구소 봉쇄 프로토콜 가동]\n\n바이러스 코드명: GENOME-X 유출 확인\n감염자 수: 측정 불가\n봉쇄 상태: 진행 중\n\n수석 연구원 Dr. Kim이 GENOME-X에 감염되었습니다.\n감염 전, 박사님은 백신 합성 정보를\nDNA 및 RNA 염기서열 암호로 기록에 남겼습니다.\n\n당신은 박사님의 마지막 조수.\n연구소 안에 갇혔습니다.\n\n암호를 해독하고, 백신을 완성하고,\n이 연구소에서 살아 나가십시오.`;
 
-window.onload = () => { typeIntroText(); };
+window.onload = () => { 
+    // 새로고침 시 로컬 스토리지 확인 팝업 로직
+    const saved = localStorage.getItem('genome_save');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            if (parsed.currentStage > 1 && parsed.currentStage <= 10) {
+                showResumePopup(parsed);
+                return;
+            }
+        } catch(e) { console.error(e); }
+    }
+    typeIntroText(); 
+};
+
+function showResumePopup(parsed) {
+    document.getElementById('general-popup-close').style.display = 'none'; // X 버튼 숨김
+    DOM.popupTitle.innerHTML = "💾 자동 저장된 데이터 발견";
+    DOM.popupContent.innerHTML = "이전에 플레이하던 기록이 존재합니다.<br>이어서 진행하시겠습니까?<br><br><div style='display:flex;gap:10px;margin-top:15px;'><button onclick='startNewGame()' style='flex:1;border-color:var(--text-dim);color:var(--text-dim);'>처음부터</button><button onclick='resumeGame()' style='flex:1;'>이어서 하기</button></div>";
+    DOM.popupOverlay.style.display = 'flex';
+    window.tempSavedState = parsed;
+}
+
+function startNewGame() {
+    localStorage.removeItem('genome_save');
+    document.getElementById('general-popup-close').style.display = 'block';
+    closePopup('popup-overlay');
+    // 처음부터 다시하기 처리
+    if(state.timerInterval) location.reload();
+    else typeIntroText();
+}
+
+function resumeGame() {
+    document.getElementById('general-popup-close').style.display = 'block';
+    closePopup('popup-overlay');
+    const p = window.tempSavedState;
+    state.currentStage = p.currentStage;
+    state.score = p.score;
+    state.mistakes = p.mistakes;
+    state.hintsUsed = p.hintsUsed;
+    state.stageHintCount = p.stageHintCount;
+    state.s5Step = p.s5Step || 'A';
+    state.pastElapsedTime = p.pastElapsedTime || 0;
+    
+    DOM.introText.classList.remove('typing-cursor');
+    DOM.introText.innerHTML = introMsg.replace(/\n/g, '<br>');
+    DOM.btnStart.style.display = 'none';
+    document.getElementById('btn-skip').style.display = 'none';
+    
+    updateScore(0);
+    startGame(true);
+}
+
+// 상태 저장 함수 (점수 변경, 스테이지 클리어, 주기적 간격으로 자동 저장)
+function saveState() {
+    if (state.currentStage === 1 && state.score === 200 && state.pastElapsedTime === 0) return;
+    let currentElapsed = state.pastElapsedTime;
+    if (state.startTime > 0) currentElapsed += Math.floor((Date.now() - state.startTime) / 1000);
+    
+    const saveObj = {
+        currentStage: state.currentStage,
+        score: state.score,
+        mistakes: state.mistakes,
+        hintsUsed: state.hintsUsed,
+        stageHintCount: state.stageHintCount,
+        s5Step: state.s5Step,
+        pastElapsedTime: currentElapsed
+    };
+    localStorage.setItem('genome_save', JSON.stringify(saveObj));
+}
 
 function typeIntroText() {
     let i = 0; DOM.introText.innerHTML = '';
@@ -495,16 +565,18 @@ function finishTyping() {
 function updateScore(amount) {
     state.score += amount;
     DOM.scoreDisplay.innerText = `💯 점수: ${state.score}점`;
+    saveState(); // 점수 변동 시 자동 저장
     if(state.score < 0) triggerGameOver();
 }
 
 function triggerGameOver() {
     clearInterval(state.timerInterval);
+    localStorage.removeItem('genome_save'); // 사망 시 저장 기록 삭제
     document.body.classList.add('zombie-attack');
     document.body.classList.add('game-over-bg');
     DOM.screens.forEach(s => s.classList.remove('active'));
     
-    showPopup("☠ 감염 (GAME OVER)", "점수가 0점 미만으로 떨어졌습니다.<br><br>GENOME-X 바이러스가 당신의 신경계를 장악했습니다.<br>이성을 잃고 좀비가 되었습니다...<br><br><button onclick='location.reload()' style='margin-top:15px; width:100%; border-color:var(--color-red); color:var(--color-red);'>다시 도전하기</button>");
+    showPopup("☠ 감염 완료 (GAME OVER)", "점수가 0점 미만으로 떨어졌습니다.<br><br>GENOME-X 바이러스가 당신의 신경계를 장악했습니다.<br>이성을 잃고 좀비가 되었습니다...<br><br><button onclick='location.reload()' style='margin-top:15px; width:100%; border-color:var(--color-red); color:var(--color-red);'>다시 도전하기</button>");
 }
 
 function triggerZombie() {
@@ -527,10 +599,13 @@ function triggerZombie() {
 
 function startGame(isResume) {
     state.startTime = Date.now();
+    if(!isResume) state.pastElapsedTime = 0;
+    
     DOM.statusBar.style.display = 'flex';
     state.timerInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+        const elapsed = state.pastElapsedTime + Math.floor((Date.now() - state.startTime) / 1000);
         DOM.timer.innerText = `⏱ 경과 시간: ${formatTime(elapsed)}`;
+        if (elapsed % 5 === 0) saveState(); // 5초 단위 자동 저장
     }, 1000);
     renderMap(); showScreen('map-screen');
 }
@@ -579,7 +654,7 @@ function loadStage(stageNum) {
 
     if (stageNum === 10) setupBossStage();
     else if (stageNum === 9) setupStage9(meta);
-    else if (stageNum === 5) { state.s5Step = 'A'; setupStage5(); }
+    else if (stageNum === 5) setupStage5();
     else setupNormalStage(stageNum, meta);
 
     showScreen('stage-screen');
@@ -718,9 +793,11 @@ function setupBossStage() {
 
 function clearStage() {
     if (state.currentStage === 5 && state.s5Step === 'A') {
-        state.s5Step = 'B'; showPopup("시스템 메시지", "첫 번째 서열 해독 완료. 다음 서열을 판별하십시오."); setupStage5(); return;
+        state.s5Step = 'B'; saveState();
+        showPopup("시스템 메시지", "첫 번째 서열 해독 완료. 다음 서열을 판별하십시오."); setupStage5(); return;
     }
     showPopup("CLEAR", "보안 락이 해제되었습니다."); state.currentStage++;
+    saveState(); // 스테이지 넘어갈 때 저장
     setTimeout(() => { closePopup('popup-overlay'); renderMap(); showScreen('map-screen'); }, 1500);
 }
 
@@ -771,26 +848,65 @@ function useHint() {
     }
 }
 
+// 10단계 탭 전환을 위해 분리한 코돈 HTML 생성 함수
+function getCodonTableHtml(dict) {
+    let html = '<div class="codon-table-grid">';
+    for(let key in dict) {
+        html += `<div class="codon-item"><span>${key}</span> <b>${dict[key]}</b></div>`;
+    }
+    html += '</div>';
+    return html;
+}
+
+function switchCodonTab(lang) {
+    const wrapper = document.getElementById('codon-table-wrapper');
+    const tabEn = document.getElementById('tab-codon-en');
+    const tabKr = document.getElementById('tab-codon-kr');
+    
+    if (lang === 'EN') {
+        tabEn.style.background = 'var(--color-amber)'; tabEn.style.color = '#000';
+        tabKr.style.background = '#000'; tabKr.style.color = 'var(--color-blue)';
+        wrapper.innerHTML = getCodonTableHtml(CODON_EN);
+    } else {
+        tabKr.style.background = 'var(--color-blue)'; tabKr.style.color = '#000';
+        tabEn.style.background = '#000'; tabEn.style.color = 'var(--color-amber)';
+        wrapper.innerHTML = getCodonTableHtml(CODON_KR);
+    }
+    // 탭을 바꾸더라도 기존에 입력한 검색어가 있으면 즉시 적용
+    searchCodon();
+}
+
 function showCodonPopup() {
     const container = document.getElementById('codon-popup-content');
     const stageNum = state.currentStage;
-    const isKr = currentLang === 'KR' || stageNum === 10; const isEn = currentLang === 'EN' || stageNum === 10 || stageNum === 5;
+    const isKr = currentLang === 'KR'; 
+    const isEn = currentLang === 'EN' || stageNum === 5;
     
     let html = '';
-    if (isEn) {
-        html += '<div class="codon-table-grid">';
-        for(let key in CODON_EN) html += `<div class="codon-item"><span>${key}</span> <b>${CODON_EN[key]}</b></div>`;
-        html += '</div>';
-    }
-    if (isKr) {
-        if (isEn) html += '<br><hr style="border-color:#333; margin: 15px 0;"><br>';
-        html += '<div class="codon-table-grid">';
-        for(let key in CODON_KR) html += `<div class="codon-item"><span>${key}</span> <b>${CODON_KR[key]}</b></div>`;
-        html += '</div>';
-    }
-    container.innerHTML = html;
-    document.getElementById('codon-search-input').value = '';
     
+    // 10단계 전용 코돈표 탭 모드
+    if (stageNum === 10) {
+        html += `<div style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;">
+            <button id="tab-codon-en" onclick="switchCodonTab('EN')" style="flex:1; border-color:var(--color-amber); background:var(--color-amber); color:#000; font-weight:bold;">[Part A] 영어 코돈표</button>
+            <button id="tab-codon-kr" onclick="switchCodonTab('KR')" style="flex:1; border-color:var(--color-blue); color:var(--color-blue); font-weight:bold;">[Part B] 한글 코돈표</button>
+        </div>
+        <div id="codon-table-wrapper"></div>`;
+        container.innerHTML = html;
+        switchCodonTab('EN'); // 기본값으로 영어를 먼저 엽니다.
+    } 
+    // 1~9단계 기존 코돈표 모드
+    else {
+        html += '<div id="codon-table-wrapper">';
+        if (isEn) html += getCodonTableHtml(CODON_EN);
+        if (isKr) {
+            if (isEn) html += '<br><hr style="border-color:#333; margin: 15px 0;"><br>';
+            html += getCodonTableHtml(CODON_KR);
+        }
+        html += '</div>';
+        container.innerHTML = html;
+    }
+    
+    document.getElementById('codon-search-input').value = '';
     const overlay = document.getElementById('codon-popup-overlay');
     overlay.style.display = 'flex';
     overlay.style.zIndex = '9999'; 
@@ -808,8 +924,9 @@ document.getElementById('codon-search-input').addEventListener('keypress', funct
 
 function showEnding() {
     clearInterval(state.timerInterval);
-    state.finalElapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
-    if (state.finalElapsedSeconds < 600) updateScore(100); 
+    state.finalElapsedSeconds = state.pastElapsedTime + Math.floor((Date.now() - state.startTime) / 1000);
+    localStorage.removeItem('genome_save'); // 엔딩 시 세이브 기록 제거
+    if (state.finalElapsedSeconds < 600) updateScore(200); 
     
     document.getElementById('res-time').innerText = formatTime(state.finalElapsedSeconds);
     document.getElementById('res-hints').innerText = state.hintsUsed;
@@ -822,10 +939,9 @@ function showEnding() {
     showScreen('ending-screen');
 }
 
-// 📌 구글 시트 연동: 랭킹 등록
 function registerScore() {
     const name = document.getElementById('player-name-input').value.trim() || "무명 연구원";
-    state.savedPlayerName = name; // 새로고침 액션 시 활용하도록 스테이트에 캐싱
+    state.savedPlayerName = name; 
     
     const btn = document.getElementById('btn-submit-score');
     btn.innerText = "서버로 전송 중...";
@@ -844,22 +960,15 @@ function registerScore() {
         });
 }
 
-// 📌 버튼 회전 애니메이션 처리 및 실시간 동기화 함수
 function refreshRankingClick() {
     const refreshBtn = document.getElementById('btn-refresh');
-    // 애니메이션 클래스 부여
     refreshBtn.classList.add('spin-animation');
-    
-    // 서버에서 최신 실시간 랭킹 다시 로드
     loadRanking(state.savedPlayerName);
-    
-    // 애니메이션이 연속으로 동작할 수 있도록 종료 후 클래스 해제
     setTimeout(() => {
         refreshBtn.classList.remove('spin-animation');
     }, 500);
 }
 
-// 📌 구글 시트 연동: 랭킹 불러오기
 function loadRanking(myName) {
     document.getElementById('name-input-zone').style.display = 'none';
     document.getElementById('ranking-zone').style.display = 'block';
